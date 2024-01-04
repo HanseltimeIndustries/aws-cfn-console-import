@@ -1,0 +1,39 @@
+name: Test API PR
+on:
+  pull_request:
+
+# This will cancel in progress jobs if another job with the same ref gets started.
+# Github run_id is a backup in case github.ref doesn't exist for some reason
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 18
+
+jobs:
+  ci-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      # TODO: caching this action would accelerate the run
+      - name: corepack
+        run: |
+          corepack enable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+      - name: install
+        run: |
+          yarn install --immutable
+      - name: build
+        run: |
+          yarn build
+      - name: linting
+        run: |
+          yarn lint
+      - name: testing
+        run: |
+          yarn test
