@@ -7,6 +7,8 @@
   "bin": "dist/bin/aws-console-import.js",
   "devDependencies": {
     "@commitlint/config-angular": "^18.4.3",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
     "@types/jest": "^29.5.11",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.10.4",
@@ -31,7 +33,8 @@
     "aws-cfn-console-import": "ts-node ./src/bin/aws-cfn-console-import.ts",
     "postinstall": "husky install",
     "prepack": "pinst --disable",
-    "postpack": "pinst --enable"
+    "postpack": "pinst --enable",
+    "release": "yarn semantic-release"
   },
   "dependencies": {
     "@aws-sdk/client-cloudformation": "^3.474.0",
