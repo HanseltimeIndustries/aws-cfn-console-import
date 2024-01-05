@@ -1,5 +1,5 @@
 {
-  "name": "aws-cfn-console-import",
+  "name": "@hanseltime/aws-cfn-console-import",
   "packageManager": "yarn@3.6.0",
   "files": [
     "dist"
