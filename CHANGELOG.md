@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/HanseltimeIndustries/aws-console-import/compare/v1.0.1...v1.0.2) (2024-01-05)
+
+
+### Bug Fixes
+
+* updating the package to have scope ([4d08fc8](https://github.com/HanseltimeIndustries/aws-console-import/commit/4d08fc828f662a79f1db936997cbb4d5f2913133))
+
 ## [1.0.1](https://github.com/HanseltimeIndustries/aws-console-import/compare/v1.0.0...v1.0.1) (2024-01-05)
 
 
