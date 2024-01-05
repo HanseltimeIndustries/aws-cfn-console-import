@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/HanseltimeIndustries/aws-cfn-console-import/compare/v1.1.0...v1.1.1) (2024-01-05)
+
+
+### Bug Fixes
+
+* making npm config public ([aeee568](https://github.com/HanseltimeIndustries/aws-cfn-console-import/commit/aeee56807e74e914e9e0d05df7cb4471a61841e0))
+
 # [1.1.0](https://github.com/HanseltimeIndustries/aws-console-import/compare/v1.0.2...v1.1.0) (2024-01-05)
 
 
