@@ -45,5 +45,12 @@
     "js-yaml": "^4.1.0",
     "yaml-cfn": "^0.3.2"
   },
-  "version": "1.1.0"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HanseltimeIndustries/aws-cfn-console-import.git"
+  },
+  "version": "1.1.0",
+  "publishConfig": {
+    "access": "public"
+  }
 }
