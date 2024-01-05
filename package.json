@@ -4,7 +4,7 @@
   "files": [
     "dist"
   ],
-  "bin": "dist/bin/aws-console-import.js",
+  "bin": "dist/bin/aws-cfn-console-import.js",
   "devDependencies": {
     "@commitlint/config-angular": "^18.4.3",
     "@semantic-release/changelog": "^6.0.3",

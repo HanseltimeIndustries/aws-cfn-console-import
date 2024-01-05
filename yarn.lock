@@ -1413,7 +1413,7 @@ __metadata:
     typescript: ^5.3.3
     yaml-cfn: ^0.3.2
   bin:
-    aws-cfn-console-import: dist/bin/aws-console-import.js
+    aws-cfn-console-import: dist/bin/aws-cfn-console-import.js
   languageName: unknown
   linkType: soft
 
