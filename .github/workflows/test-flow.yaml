@@ -1,6 +1,10 @@
-name: Test API PR
+name: Tests
 on:
-  pull_request:
+  workflow_call:
+    inputs:
+      from:
+        required: true
+        type: string
 
 # This will cancel in progress jobs if another job with the same ref gets started.
 # Github run_id is a backup in case github.ref doesn't exist for some reason
@@ -8,12 +12,14 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
   cancel-in-progress: true
 
-env:
-  NODE_VERSION: 18
-
 jobs:
   ci-checks:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
     steps:
       - uses: actions/checkout@v3
       # TODO: caching this action would accelerate the run
@@ -22,12 +28,24 @@ jobs:
           corepack enable
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: ${{ matrix.node-version }}
           cache: 'yarn'
           cache-dependency-path: yarn.lock
       - name: install
         run: |
           yarn install --immutable
+      - name: commit-linting
+        run: |
+          if [[ "${{ github.base_ref }}" != "" ]]; then
+            echo "Setting up git environment for commitlint of pull request"
+            git fetch origin ${{ github.base_ref }}
+            git fetch origin ${{ github.head_ref }}
+            yarn commitlint --from ${{ github.event.pull_request.head.sha }}~${{ github.event.pull_request.commits }} --to ${{ github.event.pull_request.head.sha }} --verbose
+          else
+            echo "Setting up git environment for commitlint of branch push"
+            git fetch origin ${{ github.ref_name }} --unshallow
+            yarn commitlint --from $(git rev-list --max-parents=0 origin/${{ github.ref_name }})
+          fi
       - name: build
         run: |
           yarn build
