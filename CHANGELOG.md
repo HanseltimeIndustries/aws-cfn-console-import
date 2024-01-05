@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/HanseltimeIndustries/aws-console-import/compare/v1.0.2...v1.1.0) (2024-01-05)
+
+
+### Features
+
+* updating script name ([5430ebc](https://github.com/HanseltimeIndustries/aws-console-import/commit/5430ebcab20d2e173858262eb851ffa36d378bc9))
+
 ## [1.0.2](https://github.com/HanseltimeIndustries/aws-console-import/compare/v1.0.1...v1.0.2) (2024-01-05)
 
 
