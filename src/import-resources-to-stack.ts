@@ -30,7 +30,7 @@ export async function importResourcesToStack(options: ImportResourcesToStackOpti
 
   const changeSetResult = await waitUntilChangeSetCreateComplete(
     { client: cloudformationClient, maxWaitTime: options.maxWaitTime },
-    { ChangeSetName: changeSetCmd.input.ChangeSetName },
+    { ChangeSetName: changeSetCmd.input.ChangeSetName, StackName: changeSetCmd.input.StackName },
   )
   if (changeSetResult.state !== WaiterState.SUCCESS) {
     throw new Error(

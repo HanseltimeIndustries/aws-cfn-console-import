@@ -92,7 +92,7 @@ describe('importResourcesToStack', () => {
     )
     expect(mockWaitUntilChangeSetCreateComplete).toHaveBeenCalledWith(
       { client: cloudformationClient, maxWaitTime: 2000 },
-      { ChangeSetName: changeSetName },
+      { ChangeSetName: changeSetName, StackName: stackName },
     )
     expect(mockWaitUntilStackImportComplete).toHaveBeenCalledWith(
       { client: cloudformationClient, maxWaitTime: 2000 },
@@ -134,7 +134,7 @@ describe('importResourcesToStack', () => {
     )
     expect(mockWaitUntilChangeSetCreateComplete).toHaveBeenCalledWith(
       { client: cloudformationClient, maxWaitTime: 2000 },
-      { ChangeSetName: changeSetName },
+      { ChangeSetName: changeSetName, StackName: stackName },
     )
     expect(mockWaitUntilStackImportComplete).toHaveBeenCalledWith(
       { client: cloudformationClient, maxWaitTime: 2000 },
