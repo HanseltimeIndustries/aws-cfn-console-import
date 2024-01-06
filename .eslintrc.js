@@ -13,7 +13,7 @@ module.exports = {
   rules: {
     'prettier/prettier': 'error',
   },
-  ignorePatterns: ['dist/**/*.js'],
+  ignorePatterns: ['dist/**/*.js', 'dist-bin/**/*.js'],
   overrides: [
     {
       files: ['src/**/*.ts'],

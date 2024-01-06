@@ -55,3 +55,10 @@ jobs:
       - name: testing
         run: |
           yarn test
+      - name: Make sure binary is accessible
+        run: |
+          packageDir=${PWD##*/}
+          cd ../
+          npm install -g ./${packageDir} --ignore-scripts
+          echo "Running script to ensure valid help dispaly"
+          aws-cfn-console-import --help
