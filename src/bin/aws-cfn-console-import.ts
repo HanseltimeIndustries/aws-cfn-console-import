@@ -24,7 +24,7 @@ program
     'The path to the template file with the import-only changes, relative to the cwd',
   )
   .requiredOption(
-    '-i, -importedResource <name>',
+    '-i, --importedResource <name>',
     'The name of the resource in the template that is being imported.  You can supply multiple or these',
     collect,
     [],
