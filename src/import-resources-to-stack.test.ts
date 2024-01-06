@@ -72,6 +72,7 @@ describe('importResourcesToStack', () => {
       importFile: 'somefile.json',
       importedResources: ['ResourceName1', 'ResourceName2'],
       maxWaitTime: 2000,
+      parameterOverrides: {},
     })
 
     expect(mockCreateChangeSetImportCommand).toHaveBeenCalledWith({
@@ -79,6 +80,7 @@ describe('importResourcesToStack', () => {
       importFile: 'somefile.json',
       importedResources: ['ResourceName1', 'ResourceName2'],
       maxWaitTime: 2000,
+      parameterOverrides: {},
     })
     expect(mockSend).toHaveBeenCalledTimes(2)
     expect(mockSend).toHaveBeenCalledWith(mockChangeSetCommand)
@@ -92,7 +94,7 @@ describe('importResourcesToStack', () => {
     )
     expect(mockWaitUntilChangeSetCreateComplete).toHaveBeenCalledWith(
       { client: cloudformationClient, maxWaitTime: 2000 },
-      { ChangeSetName: changeSetName },
+      { ChangeSetName: changeSetName, StackName: stackName },
     )
     expect(mockWaitUntilStackImportComplete).toHaveBeenCalledWith(
       { client: cloudformationClient, maxWaitTime: 2000 },
@@ -113,6 +115,7 @@ describe('importResourcesToStack', () => {
       importedResources: ['ResourceName1', 'ResourceName2'],
       maxWaitTime: 2000,
       s3Bucket: 'some-bucket',
+      parameterOverrides: {},
     })
 
     expect(mockCreateChangeSetImportCommand).toHaveBeenCalledWith({
@@ -121,6 +124,7 @@ describe('importResourcesToStack', () => {
       importedResources: ['ResourceName1', 'ResourceName2'],
       maxWaitTime: 2000,
       s3Bucket: 'some-bucket',
+      parameterOverrides: {},
     })
     expect(mockSend).toHaveBeenCalledTimes(2)
     expect(mockSend).toHaveBeenCalledWith(mockChangeSetCommand)
@@ -134,7 +138,7 @@ describe('importResourcesToStack', () => {
     )
     expect(mockWaitUntilChangeSetCreateComplete).toHaveBeenCalledWith(
       { client: cloudformationClient, maxWaitTime: 2000 },
-      { ChangeSetName: changeSetName },
+      { ChangeSetName: changeSetName, StackName: stackName },
     )
     expect(mockWaitUntilStackImportComplete).toHaveBeenCalledWith(
       { client: cloudformationClient, maxWaitTime: 2000 },
@@ -156,6 +160,7 @@ describe('importResourcesToStack', () => {
             importFile: 'somefile.json',
             importedResources: ['ResourceName1', 'ResourceName2'],
             maxWaitTime: 2000,
+            parameterOverrides: {},
           }),
       ).rejects.toThrow(`Failed to create change set: ${result} stuff did not work out, fam`)
     },
@@ -178,6 +183,7 @@ describe('importResourcesToStack', () => {
             importFile: 'somefile.json',
             importedResources: ['ResourceName1', 'ResourceName2'],
             maxWaitTime: 2000,
+            parameterOverrides: {},
           }),
       ).rejects.toThrow(
         `Failed to update stack with change set: ${result} stuff did not work out, fam`,

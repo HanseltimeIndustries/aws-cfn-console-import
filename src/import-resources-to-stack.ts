@@ -6,11 +6,15 @@ import {
 import { WaiterState } from '@smithy/util-waiter'
 import { cloudformationClient } from './client'
 import { createChangeSetImportCommand } from './create-change-set-import-command'
+import { awsBetterErrors } from './aws-better-errors'
 
 interface ImportResourcesToStackOptions {
   stackName: string
   importFile: string
   importedResources: string[]
+  parameterOverrides: {
+    [parameter: string]: string
+  }
   /**
    * The max number of seconds to wait for the change set to be in a resolved state
    */
@@ -26,31 +30,40 @@ interface ImportResourcesToStackOptions {
 export async function importResourcesToStack(options: ImportResourcesToStackOptions) {
   const changeSetCmd = await createChangeSetImportCommand(options)
 
-  await cloudformationClient.send(changeSetCmd)
-
-  const changeSetResult = await waitUntilChangeSetCreateComplete(
-    { client: cloudformationClient, maxWaitTime: options.maxWaitTime },
-    { ChangeSetName: changeSetCmd.input.ChangeSetName },
+  await awsBetterErrors(
+    'CreateChangeSet',
+    async () => await cloudformationClient.send(changeSetCmd),
   )
+
+  const changeSetResult = await awsBetterErrors('WaitUntilChangeSetCreateComplete', async () => {
+    return await waitUntilChangeSetCreateComplete(
+      { client: cloudformationClient, maxWaitTime: options.maxWaitTime },
+      { ChangeSetName: changeSetCmd.input.ChangeSetName, StackName: changeSetCmd.input.StackName },
+    )
+  })
   if (changeSetResult.state !== WaiterState.SUCCESS) {
     throw new Error(
       `Failed to create change set: ${changeSetResult.state} ${changeSetResult.reason}`,
     )
   }
 
-  await cloudformationClient.send(
-    new ExecuteChangeSetCommand({
-      ChangeSetName: changeSetCmd.input.ChangeSetName,
-      StackName: changeSetCmd.input.StackName,
-    }),
-  )
+  await awsBetterErrors('ExecuteChangeSetCommand', async () => {
+    return await cloudformationClient.send(
+      new ExecuteChangeSetCommand({
+        ChangeSetName: changeSetCmd.input.ChangeSetName,
+        StackName: changeSetCmd.input.StackName,
+      }),
+    )
+  })
 
   // TODO: we could describe the change set with a prompt
 
-  const importResult = await waitUntilStackImportComplete(
-    { client: cloudformationClient, maxWaitTime: options.maxWaitTime },
-    { StackName: changeSetCmd.input.StackName },
-  )
+  const importResult = await awsBetterErrors('WaitUntilChangeSetCreateComplete', async () => {
+    return await waitUntilStackImportComplete(
+      { client: cloudformationClient, maxWaitTime: options.maxWaitTime },
+      { StackName: changeSetCmd.input.StackName },
+    )
+  })
 
   if (importResult.state !== WaiterState.SUCCESS) {
     throw new Error(

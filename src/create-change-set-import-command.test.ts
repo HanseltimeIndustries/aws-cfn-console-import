@@ -22,16 +22,28 @@ const mockGetRegion = getRegion as jest.Mock
 
 const CORRECT_CFN_IMPORT_FILE_YAML = join(__dirname, '..', 'test-fixtures', 'basic-cfn.yaml')
 const CORRECT_CFN_IMPORT_FILE_JSON = join(__dirname, '..', 'test-fixtures', 'basic-cfn.json')
+const CORRECT_PARAMETERIZED_CFN_IMPORT_FILE_JSON = join(
+  __dirname,
+  '..',
+  'test-fixtures',
+  'basic-cfn-parameterized.yaml',
+)
 const REGION = 'us-east-2'
 
 describe.each([
-  ['yaml', 'local upload', CORRECT_CFN_IMPORT_FILE_YAML],
-  ['json', 'local upload', CORRECT_CFN_IMPORT_FILE_JSON],
-  ['yaml', 's3 upload', CORRECT_CFN_IMPORT_FILE_YAML],
-  ['json', 's3 upload', CORRECT_CFN_IMPORT_FILE_JSON],
+  ['yaml', 'local upload', '', CORRECT_CFN_IMPORT_FILE_YAML],
+  ['json', 'local upload', '', CORRECT_CFN_IMPORT_FILE_JSON],
+  ['yaml', 's3 upload', '', CORRECT_CFN_IMPORT_FILE_YAML],
+  ['json', 's3 upload', '', CORRECT_CFN_IMPORT_FILE_JSON],
+  [
+    'yaml',
+    'local upload',
+    'with parameters for identifiers',
+    CORRECT_PARAMETERIZED_CFN_IMPORT_FILE_JSON,
+  ],
 ])(
-  'createChangeSetImportCommand %s with %s',
-  (type: string, uploadSource: string, importFile: string) => {
+  'createChangeSetImportCommand %s with %s %s',
+  (type: string, uploadSource: string, extraCondition: string, importFile: string) => {
     beforeEach(() => {
       jest.resetAllMocks()
       // Mock the region we're in for all tests
@@ -42,11 +54,14 @@ describe.each([
     const expectedS3BucketUrl = `https://${s3Bucket}.s3.${REGION}.amazonaws.com`
     it('returns a correct command for the given template', async () => {
       mockGetResourceIdentifierInfoMap.mockResolvedValue({
-        'AWS::IAM::User': {
-          ResourceType: 'AWS::IAM::User',
-          LogicalResourceIds: ['ImportUser2', 'ImportUser', 'ExistingUser', 'ExistingUser2'],
-          ResourceIdentifiers: ['UserName', 'Path'],
+        resources: {
+          'AWS::IAM::User': {
+            ResourceType: 'AWS::IAM::User',
+            LogicalResourceIds: ['ImportUser2', 'ImportUser', 'ExistingUser', 'ExistingUser2'],
+            ResourceIdentifiers: ['UserName', 'Path'],
+          },
         },
+        Capabilities: [],
       })
 
       // Calculate the expected hash name
@@ -58,8 +73,23 @@ describe.each([
             TemplateURL: `${expectedS3BucketUrl}/${expectedChangeSetName}${extname(importFile)}`,
           }
         : {
-            TemplateBody: `file://${importFile}`,
+            TemplateBody: fs.readFileSync(importFile).toString(),
           }
+
+      const extraParameters: { [param: string]: string } = {}
+      const expectedExtraParams = []
+      let expectedImportedUser1Identifier = 'imported-john'
+      let expectedImportedUser2Identifier = 'imported-brian'
+      if (extraCondition === 'with parameters for identifiers') {
+        extraParameters.UserParam2 = 'param-override-user'
+        expectedImportedUser2Identifier = 'param-override-user'
+        // Then we expect the default of the yaml to be used
+        expectedImportedUser1Identifier = 'defaultUser'
+        expectedExtraParams.push({
+          ParameterKey: 'UserParam2',
+          ParameterValue: 'param-override-user',
+        })
+      }
 
       expect(
         await createChangeSetImportCommand({
@@ -67,12 +97,16 @@ describe.each([
           importedResources: ['ImportUser2', 'ImportUser'],
           stackName: 'my-special-stack-name',
           s3Bucket: isS3Upload ? s3Bucket : undefined,
+          parameterOverrides: {
+            Param1: 'someValue',
+            ...extraParameters,
+          },
         }),
       ).toEqual(
         expect.objectContaining({
           input: {
             ...expectedTemplateParam,
-            ImportExistingResources: true,
+            Capabilities: [],
             StackName: 'my-special-stack-name',
             // TODO: we may want to establish an upload here for uber-large cloudformation
             ChangeSetType: 'IMPORT',
@@ -81,7 +115,7 @@ describe.each([
                 ResourceType: 'AWS::IAM::User',
                 LogicalResourceId: 'ImportUser2',
                 ResourceIdentifier: {
-                  UserName: 'imported-brian',
+                  UserName: expectedImportedUser2Identifier,
                   Path: '/',
                 },
               },
@@ -89,12 +123,19 @@ describe.each([
                 ResourceType: 'AWS::IAM::User',
                 LogicalResourceId: 'ImportUser',
                 ResourceIdentifier: {
-                  UserName: 'imported-john',
+                  UserName: expectedImportedUser1Identifier,
                   Path: '/',
                 },
               },
             ],
             ChangeSetName: expectedChangeSetName,
+            Parameters: [
+              {
+                ParameterKey: 'Param1',
+                ParameterValue: 'someValue',
+              },
+              ...expectedExtraParams,
+            ],
           },
         }),
       )
@@ -110,12 +151,15 @@ describe.each([
     })
     it('throws an error if the template summary does not contain a resource summary for the resource', async () => {
       mockGetResourceIdentifierInfoMap.mockResolvedValue({
-        // Just make it be a different key
-        'AWS::IAM::Policy': {
-          ResourceType: 'AWS::IAM::Policy',
-          LogicalResourceIds: ['ImportUser2', 'ImportUser', 'ExistingUser', 'ExistingUser2'],
-          ResourceIdentifiers: ['UserName', 'Path'],
+        resources: {
+          // Just make it be a different key
+          'AWS::IAM::Policy': {
+            ResourceType: 'AWS::IAM::Policy',
+            LogicalResourceIds: ['ImportUser2', 'ImportUser', 'ExistingUser', 'ExistingUser2'],
+            ResourceIdentifiers: ['UserName', 'Path'],
+          },
         },
+        Capabilities: [],
       })
 
       await expect(
@@ -124,6 +168,7 @@ describe.each([
             importFile: importFile,
             importedResources: ['ImportUser2', 'ImportUser'],
             stackName: 'my-special-stack-name',
+            parameterOverrides: {},
           }),
       ).rejects.toThrow(
         `Could not find a template summary entry for AWS::IAM::User for ImportUser2 in ${importFile}`,
@@ -131,12 +176,15 @@ describe.each([
     })
     it('throws an error if a resource name is not found', async () => {
       mockGetResourceIdentifierInfoMap.mockResolvedValue({
-        // We simulate a property that shouldn't be an identifier
-        'AWS::IAM::User': {
-          ResourceType: 'AWS::IAM::User',
-          LogicalResourceIds: ['ImportUser2', 'ImportUser', 'ExistingUser', 'ExistingUser2'],
-          ResourceIdentifiers: ['UserName'],
+        resources: {
+          // We simulate a property that shouldn't be an identifier
+          'AWS::IAM::User': {
+            ResourceType: 'AWS::IAM::User',
+            LogicalResourceIds: ['ImportUser2', 'ImportUser', 'ExistingUser', 'ExistingUser2'],
+            ResourceIdentifiers: ['UserName'],
+          },
         },
+        Capabilities: [],
       })
       await expect(
         async () =>
@@ -144,17 +192,21 @@ describe.each([
             importFile: importFile,
             importedResources: ['ImportUser2', 'ImportUser32'],
             stackName: 'my-special-stack-name',
+            parameterOverrides: {},
           }),
       ).rejects.toThrow(`Could not find imported resource ImportUser32 in ${importFile}`)
     })
     it('throws an error if a resource identifier property is not a string', async () => {
       mockGetResourceIdentifierInfoMap.mockResolvedValue({
-        // We simulate a property that shouldn't be an identifier
-        'AWS::IAM::User': {
-          ResourceType: 'AWS::IAM::User',
-          LogicalResourceIds: ['ImportUser2', 'ImportUser', 'ExistingUser', 'ExistingUser2'],
-          ResourceIdentifiers: ['LoginProfile'],
+        resources: {
+          // We simulate a property that shouldn't be an identifier
+          'AWS::IAM::User': {
+            ResourceType: 'AWS::IAM::User',
+            LogicalResourceIds: ['ImportUser2', 'ImportUser', 'ExistingUser', 'ExistingUser2'],
+            ResourceIdentifiers: ['LoginProfile'],
+          },
         },
+        Capabilities: [],
       })
       await expect(
         async () =>
@@ -162,11 +214,14 @@ describe.each([
             importFile: importFile,
             importedResources: ['ImportUser2', 'ImportUser'],
             stackName: 'my-special-stack-name',
+            parameterOverrides: {},
           }),
       ).rejects.toThrow(
-        `Unexpected non-string value for identifier property LoginProfile: ${JSON.stringify({
-          Password: 'myP@ssW0rd',
-        })}`,
+        `Unexpected non-string value for importedResource AWS::IAM::User identifier property LoginProfile: ${JSON.stringify(
+          {
+            Password: 'myP@ssW0rd',
+          },
+        )}\nIMPORTANT: if this is a valid AWS function, please contribute a feature that updates the parsing.`,
       )
     })
   },
@@ -183,6 +238,7 @@ it('throws an error if the template file cannot be found', async () => {
         importFile: 'does-not-exist.yaml',
         importedResources: ['ImportUser2', 'ImportUser'],
         stackName: 'my-special-stack-name',
+        parameterOverrides: {},
       }),
   ).rejects.toThrow('Cannot find import file: does-not-exist.yaml')
 })
@@ -200,6 +256,7 @@ it('throws an error if the file is over 51200 and does not have an s3', async ()
         importFile: CORRECT_CFN_IMPORT_FILE_YAML,
         importedResources: ['ImportUser2', 'ImportUser'],
         stackName: 'my-special-stack-name',
+        parameterOverrides: {},
       }),
   ).rejects.toThrow(
     'Must provide an S3 bucket for uploads for template files that are greater than 51200 - current size: 51201',
@@ -220,6 +277,7 @@ it('throws an error if the file is over 460800 and has an s3', async () => {
         importedResources: ['ImportUser2', 'ImportUser'],
         stackName: 'my-special-stack-name',
         s3Bucket: 'somearn',
+        parameterOverrides: {},
       }),
   ).rejects.toThrow('Cannot do work on a template greater than 460800 - current size: 460801')
 })

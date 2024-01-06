@@ -12,6 +12,7 @@ interface CLIOptions {
   importedResource: string[]
   maxWaitTime: string
   s3Bucket: string
+  parameterOverrides: string[]
 }
 
 program
@@ -24,9 +25,14 @@ program
     'The path to the template file with the import-only changes, relative to the cwd',
   )
   .requiredOption(
-    '-i, -importedResource <name>',
+    '-i, --importedResource <name>',
     'The name of the resource in the template that is being imported.  You can supply multiple or these',
     collect,
+    [],
+  )
+  .option(
+    '-p, --parameterOverrides <values...>',
+    'A parameter and its value in the corresponding template. this can be followed by a space delimited set of arguments of ParamKey=Value',
     [],
   )
   .option(
@@ -57,4 +63,15 @@ void importResourcesToStack({
   importedResources: options.importedResource,
   s3Bucket: options.s3Bucket,
   importFile: options.templateFile,
+  parameterOverrides: options.parameterOverrides.reduce(
+    (overrides, valueString) => {
+      const arr = valueString.split('=')
+      if (arr.length != 2 || arr[0].length === 0 || arr[1].length === 0) {
+        throw new Error(`Must supply parameter argument of type Key=Value.  Got ${valueString}`)
+      }
+      overrides[arr[0]] = arr[1]
+      return overrides
+    },
+    {} as { [param: string]: string },
+  ),
 })

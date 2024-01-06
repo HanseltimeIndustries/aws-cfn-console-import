@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: '2010-09-09'
+# Included here to ensure yaml processing handles the complex case
+Parameters:
+  Param1: 
+    Type: String
+    Default: "value1"
+    Description: Some Parameter
+
+Resources:
+  TestRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: s3Read
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 
+                - "s3:Get*"
+                - "s3:List*"
+                - "s3:Describe*"
+                - "s3-object-lambda:Get*"
+                - "s3-object-lambda:List*"
+                Resource: '*'
+
+# Included here to ensure yaml processing handles the complex case
+Outputs:
+  Value:
+    Description: Information about the value
+    Value: Value to return
+    Export:
+      Name: testexport
