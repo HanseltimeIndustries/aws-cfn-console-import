@@ -14,6 +14,8 @@ make sure to be respectful of fellow users and developers.
       - [Integration tests](#integration-tests)
       - [Linting](#linting)
       - [Typescript](#typescript)
+      - [Esbuild](#esbuild)
+      - [Optional - Testing built script locally](#optional---testing-built-script-locally)
       - [Optional - Personal CI checks](#optional---personal-ci-checks)
       - [Optional - Debugging](#optional---debugging)
   
@@ -106,8 +108,33 @@ Additionally, it is recommended that you integrate eslint IDE support for better
 
 #### Typescript
 
-We use typescript to compile our projects to .js.  Be sure that your builds pass when you run `yarn build` and your `dist` folder 
+We use typescript to compile our projects to .js.  Be sure that your builds pass when you run `yarn build` and your `dist` and `dist-bin` folder 
 is populated.
+
+#### Esbuild
+
+In order to diminish the amount of dependencies that our binary script could be affected by on, we actually solo bundle the cli script via
+esbuild.  This allows for a bit more determinism around what versions of a package were used for the binary.  Note, we still publish
+the package code unbundled for programmatic inclusion.
+
+If you would like to just build esbuild you can run `yarn build-bin`.
+
+#### Optional - Testing built script locally
+
+If you have made a change and would like to test some local calls to the package as an installed package, you can do the following:
+
+```shell
+#In a shell that has yarn install
+yarn build
+
+# In a shell that is new
+cd <out of the folder to avoid package.json reading>
+npm install -g <path to project>
+
+aws-cfn-console-import <args>
+```
+
+You can run the install again and again after building.
 
 #### Optional - Personal CI checks
 

@@ -24,10 +24,9 @@ imports in your IA repo and version control process and then set a goal to never
       - [templateFile](#templatefile)
     - [i (importedResource)](#i-importedresource)
     - [s3Bucket](#s3bucket)
+- [Programmatic API](#programmatic-api)
   
 *Table of Contents generated with VSCode Markdown All In One extension*
-
-
 
 # Usage
 
@@ -112,3 +111,22 @@ This will be the cloudformation name of the resource that you added.  You will a
 
 In the event that you want to load to an S3 bucket before doing the deployment, you will provide the s3 bucket.  This is required if the 
 size of the template file is over 51200 bytes.
+
+# Programmatic API
+
+We also provide a programmatic API so that you can import the package and use it in your scripts:
+
+```typescript
+import { importResourcesToStack } from '@hanseltime/aws-cfn-console-import';
+
+void importResourcesToStack({
+  stackName: 'my-stack',
+  maxWaitTime: 60,
+  importedResources: ['Resource1'],
+  s3Bucket: 'my-upload-s3',
+  importFile: 'path/to/my/template',
+  parameterOverrides: {
+    Param1: 'some value'
+  },
+})
+```
