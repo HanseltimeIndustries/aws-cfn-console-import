@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/HanseltimeIndustries/aws-cfn-console-import/compare/v1.2.0...v1.2.1) (2024-01-06)
+
+
+### Bug Fixes
+
+* bundle binary to be self contained ([8e6f3a6](https://github.com/HanseltimeIndustries/aws-cfn-console-import/commit/8e6f3a69511ceddbf657787f89ca8375061094c8))
+
 # [1.2.0](https://github.com/HanseltimeIndustries/aws-cfn-console-import/compare/v1.1.1...v1.2.0) (2024-01-06)
 
 
