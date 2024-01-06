@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { s3Client } from './client'
 import { createHash } from 'node:crypto'
+import { awsBetterErrors } from './aws-better-errors'
 
 interface UploadToS3BucketOptions {
   // The S3 bucket
@@ -20,11 +21,13 @@ export async function uploadToS3Bucket(options: UploadToS3BucketOptions): Promis
   const hash = createHash('sha256')
   const checksum = hash.update(body).digest('base64')
 
-  await s3Client.putObject({
-    Bucket: s3Bucket,
-    ContentType: contentType,
-    Key: key,
-    Body: body,
-    ChecksumSHA256: checksum,
+  await awsBetterErrors('PutObject', async () => {
+    return await s3Client.putObject({
+      Bucket: s3Bucket,
+      ContentType: contentType,
+      Key: key,
+      Body: body,
+      ChecksumSHA256: checksum,
+    })
   })
 }

@@ -6,6 +6,7 @@ import {
 } from '@aws-sdk/client-cloudformation'
 import { cloudformationClient } from './client'
 import { readFileSync } from 'fs'
+import { awsBetterErrors } from './aws-better-errors'
 
 interface GetResourceIdentifierInfoOptions {
   // url path relative to the cwd of the import file for local upload
@@ -49,7 +50,10 @@ export async function getResourceIdentifierInfoMap(
 
   const getTemplateSummaryCommand = new GetTemplateSummaryCommand(commandInput)
 
-  const summary = await cloudformationClient.send(getTemplateSummaryCommand)
+  const summary = await awsBetterErrors(
+    'GetTemplateSummary',
+    async () => await cloudformationClient.send(getTemplateSummaryCommand),
+  )
   if (!summary.ResourceIdentifierSummaries) {
     throw new Error(`Could not get any resource identifier information for ${importFile}`)
   }
