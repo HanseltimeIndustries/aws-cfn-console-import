@@ -1,3 +1,18 @@
+# [1.2.0](https://github.com/HanseltimeIndustries/aws-cfn-console-import/compare/v1.1.1...v1.2.0) (2024-01-06)
+
+
+### Bug Fixes
+
+* correcting option to --importedResource ([1858154](https://github.com/HanseltimeIndustries/aws-cfn-console-import/commit/1858154e652b9a3ef8d15642bebfbc5896d758f9))
+* missing stackname for change set creation ([be6c956](https://github.com/HanseltimeIndustries/aws-cfn-console-import/commit/be6c9568cd59e386f43940f52cd0a0cd04177186))
+* updating TemplateBody and Capabilities returns ([fe162a4](https://github.com/HanseltimeIndustries/aws-cfn-console-import/commit/fe162a48a9a5eb26fd7a630972bb352dcd0ac0ce))
+* wrappig aws errors so they're more meaningful ([ea29fb8](https://github.com/HanseltimeIndustries/aws-cfn-console-import/commit/ea29fb8bddd4cd2d87295861cb4c78955c80961f))
+
+
+### Features
+
+* adding parameter overrides and basic reference resolution ([1f775f8](https://github.com/HanseltimeIndustries/aws-cfn-console-import/commit/1f775f8f3959981f69267f95fde8c5c24ee8b205))
+
 ## [1.1.1](https://github.com/HanseltimeIndustries/aws-cfn-console-import/compare/v1.1.0...v1.1.1) (2024-01-05)
 
 

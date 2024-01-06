@@ -50,7 +50,7 @@
     "type": "git",
     "url": "https://github.com/HanseltimeIndustries/aws-cfn-console-import.git"
   },
-  "version": "1.1.1",
+  "version": "1.2.0",
   "publishConfig": {
     "access": "public"
   }
