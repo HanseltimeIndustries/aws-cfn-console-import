@@ -7,6 +7,14 @@ the correct permissions.  The PR reviewers will run it manually after review and
 
 If you are submitting a change, it is good to make sure that you've run this test against your own AWS sandbox.
 
+- [Integration Testing](#integration-testing)
+  - [Usage](#usage)
+    - [To run tests](#to-run-tests)
+    - [Cleaning Up](#cleaning-up)
+  - [Development](#development)
+
+*Table of Contents generated with VSCode Markdown All In One extension*
+
 ## Usage
 
 ### To run tests
