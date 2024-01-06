@@ -42,11 +42,14 @@ describe.each([
     const expectedS3BucketUrl = `https://${s3Bucket}.s3.${REGION}.amazonaws.com`
     it('returns a correct command for the given template', async () => {
       mockGetResourceIdentifierInfoMap.mockResolvedValue({
-        'AWS::IAM::User': {
-          ResourceType: 'AWS::IAM::User',
-          LogicalResourceIds: ['ImportUser2', 'ImportUser', 'ExistingUser', 'ExistingUser2'],
-          ResourceIdentifiers: ['UserName', 'Path'],
+        resources: {
+          'AWS::IAM::User': {
+            ResourceType: 'AWS::IAM::User',
+            LogicalResourceIds: ['ImportUser2', 'ImportUser', 'ExistingUser', 'ExistingUser2'],
+            ResourceIdentifiers: ['UserName', 'Path'],
+          },
         },
+        Capabilities: [],
       })
 
       // Calculate the expected hash name
@@ -58,7 +61,7 @@ describe.each([
             TemplateURL: `${expectedS3BucketUrl}/${expectedChangeSetName}${extname(importFile)}`,
           }
         : {
-            TemplateBody: `file://${importFile}`,
+            TemplateBody: fs.readFileSync(importFile).toString(),
           }
 
       expect(
@@ -72,7 +75,7 @@ describe.each([
         expect.objectContaining({
           input: {
             ...expectedTemplateParam,
-            ImportExistingResources: true,
+            Capabilities: [],
             StackName: 'my-special-stack-name',
             // TODO: we may want to establish an upload here for uber-large cloudformation
             ChangeSetType: 'IMPORT',
@@ -110,12 +113,15 @@ describe.each([
     })
     it('throws an error if the template summary does not contain a resource summary for the resource', async () => {
       mockGetResourceIdentifierInfoMap.mockResolvedValue({
-        // Just make it be a different key
-        'AWS::IAM::Policy': {
-          ResourceType: 'AWS::IAM::Policy',
-          LogicalResourceIds: ['ImportUser2', 'ImportUser', 'ExistingUser', 'ExistingUser2'],
-          ResourceIdentifiers: ['UserName', 'Path'],
+        resources: {
+          // Just make it be a different key
+          'AWS::IAM::Policy': {
+            ResourceType: 'AWS::IAM::Policy',
+            LogicalResourceIds: ['ImportUser2', 'ImportUser', 'ExistingUser', 'ExistingUser2'],
+            ResourceIdentifiers: ['UserName', 'Path'],
+          },
         },
+        Capabilities: [],
       })
 
       await expect(
@@ -131,12 +137,15 @@ describe.each([
     })
     it('throws an error if a resource name is not found', async () => {
       mockGetResourceIdentifierInfoMap.mockResolvedValue({
-        // We simulate a property that shouldn't be an identifier
-        'AWS::IAM::User': {
-          ResourceType: 'AWS::IAM::User',
-          LogicalResourceIds: ['ImportUser2', 'ImportUser', 'ExistingUser', 'ExistingUser2'],
-          ResourceIdentifiers: ['UserName'],
+        resources: {
+          // We simulate a property that shouldn't be an identifier
+          'AWS::IAM::User': {
+            ResourceType: 'AWS::IAM::User',
+            LogicalResourceIds: ['ImportUser2', 'ImportUser', 'ExistingUser', 'ExistingUser2'],
+            ResourceIdentifiers: ['UserName'],
+          },
         },
+        Capabilities: [],
       })
       await expect(
         async () =>
@@ -149,12 +158,15 @@ describe.each([
     })
     it('throws an error if a resource identifier property is not a string', async () => {
       mockGetResourceIdentifierInfoMap.mockResolvedValue({
-        // We simulate a property that shouldn't be an identifier
-        'AWS::IAM::User': {
-          ResourceType: 'AWS::IAM::User',
-          LogicalResourceIds: ['ImportUser2', 'ImportUser', 'ExistingUser', 'ExistingUser2'],
-          ResourceIdentifiers: ['LoginProfile'],
+        resources: {
+          // We simulate a property that shouldn't be an identifier
+          'AWS::IAM::User': {
+            ResourceType: 'AWS::IAM::User',
+            LogicalResourceIds: ['ImportUser2', 'ImportUser', 'ExistingUser', 'ExistingUser2'],
+            ResourceIdentifiers: ['LoginProfile'],
+          },
         },
+        Capabilities: [],
       })
       await expect(
         async () =>
@@ -164,9 +176,11 @@ describe.each([
             stackName: 'my-special-stack-name',
           }),
       ).rejects.toThrow(
-        `Unexpected non-string value for identifier property LoginProfile: ${JSON.stringify({
-          Password: 'myP@ssW0rd',
-        })}`,
+        `Unexpected non-string value for importedResource AWS::IAM::User identifier property LoginProfile: ${JSON.stringify(
+          {
+            Password: 'myP@ssW0rd',
+          },
+        )}`,
       )
     })
   },

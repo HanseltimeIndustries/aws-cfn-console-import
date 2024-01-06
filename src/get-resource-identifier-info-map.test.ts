@@ -1,6 +1,8 @@
 import { GetTemplateSummaryCommandOutput } from '@aws-sdk/client-cloudformation'
 import { cloudformationClient } from './client'
 import { getResourceIdentifierInfoMap } from './get-resource-identifier-info-map'
+import { join } from 'path'
+import { readFileSync } from 'fs'
 
 // eslint-disable-next-line no-var
 var mockSend: jest.Mock
@@ -13,6 +15,8 @@ jest.mock('./client', () => {
   }
 })
 
+const CORRECT_CFN_IMPORT_FILE_YAML = join(__dirname, '..', 'test-fixtures', 'basic-cfn.yaml')
+
 describe('getResourceIdentifierInfoMap', () => {
   beforeEach(() => {
     jest.clearAllMocks()
@@ -22,14 +26,16 @@ describe('getResourceIdentifierInfoMap', () => {
 
     await expect(async () =>
       getResourceIdentifierInfoMap({
-        importFile: 'somefileAddress.txt',
+        importFile: CORRECT_CFN_IMPORT_FILE_YAML,
       }),
-    ).rejects.toThrow(`Could not get any resource identifier information for somefileAddress.txt`)
+    ).rejects.toThrow(
+      `Could not get any resource identifier information for ${CORRECT_CFN_IMPORT_FILE_YAML}`,
+    )
 
     expect(cloudformationClient.send).toHaveBeenCalledWith(
       expect.objectContaining({
         input: {
-          TemplateBody: `file://somefileAddress.txt`,
+          TemplateBody: readFileSync(CORRECT_CFN_IMPORT_FILE_YAML).toString(),
         },
       }),
     )
@@ -50,23 +56,26 @@ describe('getResourceIdentifierInfoMap', () => {
 
     expect(
       await getResourceIdentifierInfoMap({
-        importFile: 'somefileAddress.txt',
+        importFile: CORRECT_CFN_IMPORT_FILE_YAML,
       }),
     ).toEqual({
-      'AWS::EC2::ApplicationLoadBalancer': {
-        ResourceIdentifiers: ['Prop1', 'Prop2'],
-        ResourceType: 'AWS::EC2::ApplicationLoadBalancer',
+      resources: {
+        'AWS::EC2::ApplicationLoadBalancer': {
+          ResourceIdentifiers: ['Prop1', 'Prop2'],
+          ResourceType: 'AWS::EC2::ApplicationLoadBalancer',
+        },
+        'AWS::EC2::Instance': {
+          ResourceIdentifiers: ['Id', 'Name'],
+          ResourceType: 'AWS::EC2::Instance',
+        },
       },
-      'AWS::EC2::Instance': {
-        ResourceIdentifiers: ['Id', 'Name'],
-        ResourceType: 'AWS::EC2::Instance',
-      },
+      Capabilities: [],
     })
 
     expect(cloudformationClient.send).toHaveBeenCalledWith(
       expect.objectContaining({
         input: {
-          TemplateBody: `file://somefileAddress.txt`,
+          TemplateBody: readFileSync(CORRECT_CFN_IMPORT_FILE_YAML).toString(),
         },
       }),
     )
@@ -87,18 +96,21 @@ describe('getResourceIdentifierInfoMap', () => {
 
     expect(
       await getResourceIdentifierInfoMap({
-        importFile: 'somefileAddress.txt',
+        importFile: CORRECT_CFN_IMPORT_FILE_YAML,
         s3Url: 'some-s3/url',
       }),
     ).toEqual({
-      'AWS::EC2::ApplicationLoadBalancer': {
-        ResourceIdentifiers: ['Prop1', 'Prop2'],
-        ResourceType: 'AWS::EC2::ApplicationLoadBalancer',
+      resources: {
+        'AWS::EC2::ApplicationLoadBalancer': {
+          ResourceIdentifiers: ['Prop1', 'Prop2'],
+          ResourceType: 'AWS::EC2::ApplicationLoadBalancer',
+        },
+        'AWS::EC2::Instance': {
+          ResourceIdentifiers: ['Id', 'Name'],
+          ResourceType: 'AWS::EC2::Instance',
+        },
       },
-      'AWS::EC2::Instance': {
-        ResourceIdentifiers: ['Id', 'Name'],
-        ResourceType: 'AWS::EC2::Instance',
-      },
+      Capabilities: [],
     })
 
     expect(cloudformationClient.send).toHaveBeenCalledWith(

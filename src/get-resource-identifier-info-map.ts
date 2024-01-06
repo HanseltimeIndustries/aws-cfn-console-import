@@ -1,9 +1,11 @@
 import {
+  Capability,
   GetTemplateSummaryCommand,
   GetTemplateSummaryCommandInput,
   ResourceIdentifierSummary,
 } from '@aws-sdk/client-cloudformation'
 import { cloudformationClient } from './client'
+import { readFileSync } from 'fs'
 
 interface GetResourceIdentifierInfoOptions {
   // url path relative to the cwd of the import file for local upload
@@ -23,7 +25,10 @@ interface GetResourceIdentifierInfoOptions {
 export async function getResourceIdentifierInfoMap(
   options: GetResourceIdentifierInfoOptions,
 ): Promise<{
-  [type: string]: ResourceIdentifierSummary
+  resources: {
+    [type: string]: ResourceIdentifierSummary
+  }
+  Capabilities: Capability[]
 }> {
   const { importFile, s3Url } = options
 
@@ -38,7 +43,7 @@ export async function getResourceIdentifierInfoMap(
     }
   } else {
     commandInput = {
-      TemplateBody: `file://${importFile}`,
+      TemplateBody: readFileSync(importFile!).toString(),
     }
   }
 
@@ -49,11 +54,14 @@ export async function getResourceIdentifierInfoMap(
     throw new Error(`Could not get any resource identifier information for ${importFile}`)
   }
 
-  return summary.ResourceIdentifierSummaries.reduce(
-    (map, _summary) => {
-      map[_summary.ResourceType!] = _summary
-      return map
-    },
-    {} as { [type: string]: ResourceIdentifierSummary },
-  )
+  return {
+    resources: summary.ResourceIdentifierSummaries.reduce(
+      (map, _summary) => {
+        map[_summary.ResourceType!] = _summary
+        return map
+      },
+      {} as { [type: string]: ResourceIdentifierSummary },
+    ),
+    Capabilities: summary.Capabilities ?? [],
+  }
 }

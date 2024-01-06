@@ -84,7 +84,7 @@ export async function createChangeSetImportCommand(options: CreateChangeSetImpor
     })
     templateParam.TemplateURL = `https://${s3Bucket}.s3.${await getRegion()}.amazonaws.com/${key}`
   } else {
-    templateParam.TemplateBody = `file://${importFile}`
+    templateParam.TemplateBody = readFileSync(importFile).toString()
   }
 
   const resourceIdentifierMap = await getResourceIdentifierInfoMap({
@@ -98,7 +98,7 @@ export async function createChangeSetImportCommand(options: CreateChangeSetImpor
       throw new Error(`Could not find imported resource ${resourceName} in ${importFile}`)
     }
 
-    const identifierSummary = resourceIdentifierMap[resource.Type]
+    const identifierSummary = resourceIdentifierMap.resources[resource.Type]
     if (!identifierSummary) {
       throw new Error(
         `Could not find a template summary entry for ${resource.Type} for ${resourceName} in ${importFile}`,
@@ -114,9 +114,9 @@ export async function createChangeSetImportCommand(options: CreateChangeSetImpor
           const idValue = resource.Properties[identifier]
           if (typeof idValue !== 'string') {
             throw new Error(
-              `Unexpected non-string value for identifier property ${identifier}: ${JSON.stringify(
-                idValue,
-              )}`,
+              `Unexpected non-string value for importedResource ${
+                resource.Type
+              } identifier property ${identifier}: ${JSON.stringify(idValue)}`,
             )
           }
           idMap[identifier] = resource.Properties[identifier] as string
@@ -128,11 +128,11 @@ export async function createChangeSetImportCommand(options: CreateChangeSetImpor
   })
 
   return new CreateChangeSetCommand({
-    ImportExistingResources: true,
     StackName: stackName,
     ChangeSetType: 'IMPORT',
     ResourcesToImport: resourcesToImport,
     ChangeSetName: changeSetName,
+    Capabilities: resourceIdentifierMap.Capabilities,
     ...templateParam,
   })
 }
