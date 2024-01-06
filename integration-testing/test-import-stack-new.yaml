@@ -1,0 +1,32 @@
+AWSTemplateFormatVersion: '2010-09-09'
+# Included here to ensure yaml processing handles the complex case
+Parameters:
+  Param1: 
+    Type: String
+    Default: "value1"
+    Description: Some Parameter
+  ImportRoleName:
+    Type: String
+    Description: Parameterized so that we can reuse importing on the same template
+
+Resources:
+  ImportedRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Ref ImportRoleName
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies: []
+      Tags:
+        - Key: testTag
+          Value: testValue
+    DeletionPolicy: Delete
