@@ -1,0 +1,109 @@
+AWSTemplateFormatVersion: '2010-09-09'
+# Included here to ensure yaml processing handles the complex case
+Parameters:
+  UserParam: 
+    Type: String
+    Default: defaultUser
+    Description: ImportUserParam
+  UserParam2:
+    Type: String
+    Default: defaultUser2
+    Description: ImportUser2Param
+
+Resources:
+  ExistingUser:
+    Type: AWS::IAM::User
+    Properties:
+      Path: "/"
+      LoginProfile:
+        Password: myP@ssW0rd
+      UserName: billy
+      Policies:
+      - PolicyName: giveaccesstoqueueonly
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - sqs:*
+            Resource:
+            - !GetAtt myqueue.Arn
+          - Effect: Deny
+            Action:
+            - sqs:*
+            NotResource:
+            - !GetAtt myqueue.Arn
+  ImportUser:
+    Type: AWS::IAM::User
+    Properties:
+      Path: "/"
+      LoginProfile:
+        Password: myP@ssW0rd
+      UserName: !Ref UserParam
+      Policies:
+      - PolicyName: giveaccesstoqueueonly
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - sqs:*
+            Resource:
+            - !GetAtt myqueue.Arn
+          - Effect: Deny
+            Action:
+            - sqs:*
+            NotResource:
+            - !GetAtt myqueue.Arn
+  ImportUser2:
+    Type: AWS::IAM::User
+    Properties:
+      Path: "/"
+      LoginProfile:
+        Password: myP@ssW0rd
+      UserName: !Ref UserParam2
+      Policies:
+      - PolicyName: giveaccesstoqueueonly
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - sqs:*
+            Resource:
+            - !GetAtt myqueue.Arn
+          - Effect: Deny
+            Action:
+            - sqs:*
+            NotResource:
+            - !GetAtt myqueue.Arn
+  ExistingUser2:
+    Type: AWS::IAM::User
+    Properties:
+      Path: "/"
+      LoginProfile:
+        Password: myP@ssW0rd
+      UserName: cindy
+      Policies:
+      - PolicyName: giveaccesstoqueueonly
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - sqs:*
+            Resource:
+            - !GetAtt myqueue.Arn
+          - Effect: Deny
+            Action:
+            - sqs:*
+            NotResource:
+            - !GetAtt myqueue.Arn
+
+# Included here to ensure yaml processing handles the complex case
+Outputs:
+  Value:
+    Description: Information about the value
+    Value: Value to return
+    Export:
+      Name: Name of resource to export

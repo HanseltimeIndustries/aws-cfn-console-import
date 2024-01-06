@@ -12,6 +12,9 @@ interface ImportResourcesToStackOptions {
   stackName: string
   importFile: string
   importedResources: string[]
+  parameterOverrides: {
+    [parameter: string]: string
+  }
   /**
    * The max number of seconds to wait for the change set to be in a resolved state
    */
