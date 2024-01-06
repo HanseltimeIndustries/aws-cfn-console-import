@@ -11,4 +11,5 @@
 .pnp.*
 
 dist/
+dist-bin/
 node_modules/

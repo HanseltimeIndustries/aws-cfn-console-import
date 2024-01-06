@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { program } from 'commander'
 import { importResourcesToStack } from '../import-resources-to-stack'
 
