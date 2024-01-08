@@ -25,6 +25,7 @@ imports in your IA repo and version control process and then set a goal to never
     - [i (importedResource)](#i-importedresource)
     - [s3Bucket](#s3bucket)
 - [Programmatic API](#programmatic-api)
+- [AWS CDK Native Import](#aws-cdk-native-import)
   
 *Table of Contents generated with VSCode Markdown All In One extension*
 
@@ -71,7 +72,10 @@ you point to the cdk.out folder file.
 
 ## 3. Calling aws-cfn-console-import
 
-**Note** you will need to make sure that you have the correct permissions for aws under the role that runs this:
+**CDK Note:** if you already have CDK related stacks, the typescript CDK actually provides a way of updating its own
+stacks for import.  See [AWS CDK Native Import](#aws-cdk-native-import)
+
+**Note:** you will need to make sure that you have the correct permissions for aws under the role that runs this:
 
 * Cloudformation
     * CreateChangeSet
@@ -84,6 +88,7 @@ you point to the cdk.out folder file.
     * PutObject
     * GetObject
     * List*
+    * 
 
 With the corresponding role available to the console, you can call:
 
@@ -129,4 +134,27 @@ void importResourcesToStack({
     Param1: 'some value'
   },
 })
+```
+
+# AWS CDK Native Import
+
+If you are already using the CDK, it is recommended that you use the CDK import function.
+
+In order to use this, you can follow steps 1 and 2 from above.  Then, you will want to make a resource
+import file that describes every new addition like:
+
+```json
+{
+  "MyResourceId": {
+    // You would need to identify the "logical resource id" property that can be used to find the resource
+    // this can be done via `aws cloudformation get-template-summary`
+    "RoleName": "value"
+  }
+}
+```
+
+Then you would need to run this cdk command:
+
+```shell
+cdk import my-stack --resource-mapping <file path>
 ```
